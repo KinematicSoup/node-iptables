@@ -87,8 +87,13 @@ function iptablesArgs (rule) {
     if (rule.in) args = args.concat(["-i", rule.in]);
     if (rule.out) args = args.concat(["-o", rule.out]);
     if (rule.target) args = args.concat(["-j", rule.target]);
-    if (rule.list) args = args.concat(["-n", "-v"]);
-    if (rule .quota) args = args.concat(["-m quota --quota", rule.quota]);
+    if (rule.list) args = args.concat(["-n", "-v", "-x"]);
+    if (rule.user) args = args.concat(["-m", "owner", "--uid-owner", rule.user]);
+    if (rule.quota) args = args.concat(["-m quota --quota", rule.quota]);
+    if (rule.tcpFlags) args = args.concat(['-m', 'tcp', '--tcp-flags', rule.tcpFlags.mask, rule.tcpFlags.comp]);
+    if (rule.state) args = args.concat(["-m", "state", "--state", rule.state]);
+    if (rule.dnat) args = args.concat(['--to-destination', rule.dnat]);
+    if (rule.params && Array.isArray(rule.params)) args = args.concat(rule.params);
 
     return args;
 }
