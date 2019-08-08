@@ -33,8 +33,8 @@ exports.list = function(chain, cb) {
         .skip(2)
         .map(function (line) {
             // packets, bytes, target, pro, opt, in, out, src, dst, opts
-            var fields = line.trim().split(/\s+/, 9);
-            return {
+            var fields = line.trim().split(/\s+/, 99);
+            var ret = {
                 parsed : {
                     packets : fields[0],
                     bytes : fields[1],
@@ -44,10 +44,16 @@ exports.list = function(chain, cb) {
                     in : fields[5],
                     out : fields[6],
                     src : fields[7],
-                    dst : fields[8]
+                    dst : fields[8],
+                    rest : fields[9]
                 },
                 raw : line.trim()
             };
+            for (var i=10; i < fields.length; i++)
+            {
+                ret.parsed.rest += ' ' + fields[i];
+            }
+            return ret;
         })
         .join(function (rules) {
             cb(rules);
