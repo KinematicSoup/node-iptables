@@ -33,8 +33,8 @@ exports.list = function(chain, cb) {
         .skip(2)
         .map(function (line) {
             // packets, bytes, target, pro, opt, in, out, src, dst, opts
-            var fields = line.trim().split(/\s+/, 9);
-            return {
+            var fields = line.trim().split(/\s+/, 99);
+            var ret = {
                 parsed : {
                     packets : fields[0],
                     bytes : fields[1],
@@ -44,10 +44,16 @@ exports.list = function(chain, cb) {
                     in : fields[5],
                     out : fields[6],
                     src : fields[7],
-                    dst : fields[8]
+                    dst : fields[8],
+                    rest : fields[9]
                 },
                 raw : line.trim()
             };
+            for (var i=10; i < fields.length; i++)
+            {
+                ret.parsed.rest += ' ' + fields[i];
+            }
+            return ret;
         })
         .join(function (rules) {
             cb(rules);
@@ -87,7 +93,13 @@ function iptablesArgs (rule) {
     if (rule.in) args = args.concat(["-i", rule.in]);
     if (rule.out) args = args.concat(["-o", rule.out]);
     if (rule.target) args = args.concat(["-j", rule.target]);
-    if (rule.list) args = args.concat(["-n", "-v"]);
+    if (rule.list) args = args.concat(["-n", "-v", "-x"]);
+    if (rule.user) args = args.concat(["-m", "owner", "--uid-owner", rule.user]);
+    if (rule.quota) args = args.concat(["-m quota --quota", rule.quota]);
+    if (rule.tcpFlags) args = args.concat(['-m', 'tcp', '--tcp-flags', rule.tcpFlags.mask, rule.tcpFlags.comp]);
+    if (rule.state) args = args.concat(["-m", "state", "--state", rule.state]);
+    if (rule.dnat) args = args.concat(['--to-destination', rule.dnat]);
+    if (rule.params && Array.isArray(rule.params)) args = args.concat(rule.params);
 
     return args;
 }
