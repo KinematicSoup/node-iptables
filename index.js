@@ -31,7 +31,7 @@ exports.list = function(chain, zeroCounters, cb) {
         list : true,
         chain : chain,
         action : '-L',
-        zeroCounters : zeroCounters;
+        zeroCounters : zeroCounters,
         sudo : true
     };
 
