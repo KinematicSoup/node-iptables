@@ -19,11 +19,19 @@ exports.reject = function (rule) {
     newRule(rule);
 }
 
-exports.list = function(chain, cb) {
+exports.list = function(chain, zeroCounters, cb) {
+    if (typeof cb == 'undefined' && typeof zeroCounters == 'function') {
+        cb = zeroCounters;
+        zeroCounters = false;
+    } else if (typeof zeroCounters == 'undefined') {
+        zeroCounters = false;
+    }
+
     var rule = {
         list : true,
         chain : chain,
         action : '-L',
+        zeroCounters : zeroCounters,
         sudo : true
     };
 
@@ -33,7 +41,7 @@ exports.list = function(chain, cb) {
         .skip(2)
         .map(function (line) {
             // packets, bytes, target, pro, opt, in, out, src, dst, opts
-            var fields = line.trim().split(/\s+/, 99);
+            var fields = line.trim().split(/\s+/);
             var ret = {
                 parsed : {
                     packets : fields[0],
@@ -94,6 +102,7 @@ function iptablesArgs (rule) {
     if (rule.out) args = args.concat(["-o", rule.out]);
     if (rule.target) args = args.concat(["-j", rule.target]);
     if (rule.list) args = args.concat(["-n", "-v", "-x"]);
+    if (rule.list && rule.zeroCounters) args = args.concat("-Z");
     if (rule.user) args = args.concat(["-m", "owner", "--uid-owner", rule.user]);
     if (rule.quota) args = args.concat(["-m quota --quota", rule.quota]);
     if (rule.tcpFlags) args = args.concat(['-m', 'tcp', '--tcp-flags', rule.tcpFlags.mask, rule.tcpFlags.comp]);
